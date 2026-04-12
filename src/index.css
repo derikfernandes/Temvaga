@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-gov-blue: #1351b4;
+  --color-gov-blue-dark: #0c326f;
+  --color-gov-green: #00a335;
+  --color-gov-yellow: #ffcc00;
+  --color-gov-red: #e5231d;
+  --color-gov-gray-light: #f8f8f8;
+  --color-gov-gray-dark: #333333;
+}
+
+@layer base {
+  body {
+    @apply bg-gov-gray-light text-gov-gray-dark;
+  }
+}
+
+.gov-gradient-text {
+  background: linear-gradient(to right, #00a335, #ffcc00, #1351b4, #e5231d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gov-card {
+  @apply bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required)
+    //   - nome_completo: string (required)
+    //   - email: string (required)
+    //   - descricao_profissional: string (optional)
+    //   - cpf: string (optional)
+    //   - experiencia_profissional: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: applications
+    // Document ID: {appId}
+    // Fields:
+    //   - vaga_id: number (required)
+    //   - user_uid: string (required)
+    //   - status: string (required, enum: ['applied', 'reviewing', 'accepted', 'rejected'])
+    //   - appliedAt: timestamp (required)
+    //
+    // Collection: acquired_courses
+    // Document ID: {acqId}
+    // Fields:
+    //   - curso_id: number (required)
+    //   - user_uid: string (required)
+    //   - progress: number (required)
+    //   - acquiredAt: timestamp (required)
+    //
+    // Collection: cpf_lookup
+    // Document ID: {cpf}
+    // Fields:
+    //   - uid: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.nome_completo is string && data.nome_completo.size() > 0 && data.nome_completo.size() < 100 &&
+             isValidEmail(data.email) &&
+             (!('descricao_profissional' in data) || (data.descricao_profissional is string && data.descricao_profissional.size() < 2000)) &&
+             (!('experiencia_profissional' in data) || (data.experiencia_profissional is string && data.experiencia_profissional.size() < 5000));
+    }
+
+    function isValidApplication(data) {
+      return data.user_uid == request.auth.uid &&
+             data.vaga_id is number &&
+             data.status in ['applied', 'reviewing', 'accepted', 'rejected'];
+    }
+
+    function isValidAcquiredCourse(data) {
+      return data.user_uid == request.auth.uid &&
+             data.curso_id is number &&
+             data.progress is number && data.progress >= 0 && data.progress <= 100;
+    }
+
+    function isValidCpfLookup(data) {
+      return data.uid == request.auth.uid &&
+             data.uid is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+    }
+
+    match /applications/{appId} {
+      allow read: if isAuthenticated() && resource.data.user_uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidApplication(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.user_uid == request.auth.uid && isValidApplication(request.resource.data);
+    }
+
+    match /acquired_courses/{acqId} {
+      allow read: if isAuthenticated() && resource.data.user_uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidAcquiredCourse(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.user_uid == request.auth.uid && isValidAcquiredCourse(request.resource.data);
+    }
+
+    match /cpf_lookup/{cpf} {
+      // Allow unauthenticated get to check if CPF exists
+      allow get: if true;
+      // Only the user can create their own CPF lookup
+      allow create: if isAuthenticated() && isValidCpfLookup(request.resource.data);
+      // No updates or deletes allowed for security
+      allow update, delete: if false;
+    }
+  }
+}

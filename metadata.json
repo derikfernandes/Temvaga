@@ -1,0 +1,5 @@
+{
+  "name": "Portal de Vagas e Cursos",
+  "description": "Plataforma para busca de vagas de emprego e recomendação de cursos baseada em qualificações.",
+  "requestFramePermissions": ["microphone"]
+}
