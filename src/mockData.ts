@@ -1,65 +1,65 @@
 import { Empresa, Curso, Vaga, VagaCursoQualificacao } from './types';
 
 export const empresas: Empresa[] = [
-  { id: 1, nome: 'Tech Solutions S.A.', nome_fantasia: 'TechSol', cnpj: '12.345.678/0001-90' },
-  { id: 2, nome: 'Inovação Digital Ltda', nome_fantasia: 'InovaDigi', cnpj: '98.765.432/0001-10' },
-  { id: 3, nome: 'Educação Global', nome_fantasia: 'EduGlobal', cnpj: '45.678.901/0001-22' },
+  { id: 1, nome: 'Serviços Gerais Brilhante', nome_fantasia: 'Brilhante', cnpj: '11.222.333/0001-44' },
+  { id: 2, nome: 'Supermercado Preço Bom', nome_fantasia: 'Preço Bom', cnpj: '55.666.777/0001-88' },
+  { id: 3, nome: 'Restaurante Comida Caseira', nome_fantasia: 'Sabor de Casa', cnpj: '99.000.111/0001-22' },
 ];
 
 export const cursos: Curso[] = [
   { 
     id: 1, 
-    nome: 'React Avançado', 
-    quem_criou: 'EduGlobal', 
+    nome: 'Técnicas de Limpeza Profissional', 
+    quem_criou: 'Brilhante', 
     data_de_criacao: '2023-10-01T10:00:00Z', 
-    tags: 'react,frontend,javascript,typescript',
-    conteudo: '# React Avançado\n\nNeste curso você aprenderá:\n- Hooks customizados\n- Context API e Gerenciamento de Estado\n- Performance com useMemo e useCallback\n- Testes unitários com Jest e React Testing Library.',
-    url: 'https://react.dev'
+    tags: 'limpeza,higiene,serviços gerais',
+    conteudo: '# Técnicas de Limpeza Profissional\n\nAprenda o essencial para atuar na área:\n- Uso correto de produtos químicos\n- Equipamentos de proteção (EPIs)\n- Organização de cronogramas de limpeza\n- Higienização de ambientes hospitalares e comerciais.',
+    url: 'https://www.gov.br/trabalho-e-emprego/pt-br'
   },
   { 
     id: 2, 
-    nome: 'Node.js com Express', 
-    quem_criou: 'TechSol', 
+    nome: 'Boas Práticas na Cozinha', 
+    quem_criou: 'Sabor de Casa', 
     data_de_criacao: '2023-11-15T14:30:00Z', 
-    tags: 'node,backend,javascript,api',
-    conteudo: '# Node.js com Express\n\nDomine o backend com:\n- Arquitetura MVC\n- Autenticação JWT\n- Integração com MongoDB e PostgreSQL\n- Deploy em nuvem.',
-    url: 'https://expressjs.com'
+    tags: 'cozinha,alimentos,higiene',
+    conteudo: '# Boas Práticas na Cozinha\n\nFundamentos para ajudantes e auxiliares:\n- Manipulação segura de alimentos\n- Prevenção de contaminação cruzada\n- Organização da despensa e estoque\n- Limpeza e conservação de utensílios.',
+    url: 'https://www.gov.br/anvisa/pt-br'
   },
   { 
     id: 3, 
-    nome: 'Design de Interface (UI)', 
-    quem_criou: 'InovaDigi', 
+    nome: 'Atendimento ao Cliente e Caixa', 
+    quem_criou: 'Preço Bom', 
     data_de_criacao: '2023-12-05T09:00:00Z', 
-    tags: 'design,ui,ux,figma',
-    conteudo: '# Design de Interface (UI)\n\nCrie interfaces incríveis:\n- Teoria das cores\n- Tipografia para web\n- Prototipagem no Figma\n- Design System e Componentização.',
-    url: 'https://www.figma.com/resource-library/design-basics/'
+    tags: 'atendimento,caixa,vendas',
+    conteudo: '# Atendimento ao Cliente e Caixa\n\nPrepare-se para o comércio:\n- Técnicas de atendimento cordial\n- Operação de sistemas de caixa\n- Fechamento de caixa e sangria\n- Lidar com diferentes formas de pagamento.',
+    url: 'https://www.sebrae.com.br'
   },
   { 
     id: 4, 
-    nome: 'Python para Ciência de Dados', 
-    quem_criou: 'EduGlobal', 
+    nome: 'Reposição e Logística Básica', 
+    quem_criou: 'Preço Bom', 
     data_de_criacao: '2024-01-20T11:00:00Z', 
-    tags: 'python,data science,ai,ml',
-    conteudo: '# Python para Ciência de Dados\n\nExplore o mundo dos dados:\n- Pandas e NumPy\n- Visualização com Matplotlib e Seaborn\n- Introdução ao Machine Learning\n- Limpeza e tratamento de dados.',
-    url: 'https://www.python.org'
+    tags: 'estoque,reposição,mercado',
+    conteudo: '# Reposição e Logística Básica\n\nOrganize o ponto de venda:\n- Layout de gôndolas e prateleiras\n- Controle de validade (PVPS)\n- Recebimento de mercadorias\n- Precificação e etiquetas.',
+    url: 'https://www.sebrae.com.br'
   },
   { 
     id: 5, 
     nome: 'Como Falar em Público', 
     quem_criou: 'Google', 
     data_de_criacao: '2024-02-10T16:00:00Z', 
-    tags: 'apresentação, comunicação, softskill',
-    conteudo: '# Comunicação\n\nFalar em Público\n- Primeiro Emprego\n',
+    tags: 'comunicação,entrevista,softskill',
+    conteudo: '# Comunicação para Entrevistas\n\nDestaque-se no processo seletivo:\n- Como se apresentar\n- Linguagem corporal\n- Respondendo perguntas comuns\n- Dicas para o primeiro emprego.',
     url: 'https://skillshop.exceedlms.com/student/collection/757289-public-speaking?locale=pt-PT'
   },
   { 
     id: 6, 
-    nome: 'Segurança da Informação', 
-    quem_criou: 'InovaDigi', 
+    nome: 'Segurança no Trabalho (NR-06)', 
+    quem_criou: 'Brilhante', 
     data_de_criacao: '2024-03-01T08:00:00Z', 
-    tags: 'security,cybersecurity,network',
-    conteudo: '# Segurança da Informação\n\nProteja seus sistemas:\n- Fundamentos de criptografia\n- Segurança em redes\n- Prevenção de ataques comuns (SQLi, XSS)\n- Normas e conformidade (LGPD).',
-    url: 'https://www.owasp.org'
+    tags: 'segurança,epi,trabalho',
+    conteudo: '# Segurança no Trabalho\n\nSua saúde em primeiro lugar:\n- Importância do uso de EPIs\n- Prevenção de acidentes comuns\n- Postura e ergonomia no trabalho braçal\n- Primeiros socorros básicos.',
+    url: 'https://www.gov.br/trabalho-e-emprego/pt-br'
   },
 ];
 
@@ -67,37 +67,46 @@ export const vagas: Vaga[] = [
   { 
     id: 1, 
     empresa_id: 1, 
-    titulo: 'Desenvolvedor Frontend Sênior', 
-    descricao: 'Buscamos especialista em React e TypeScript para atuar em projetos internacionais. Conhecimento em Tailwind CSS é um diferencial.',
+    titulo: 'Auxiliar de Limpeza', 
+    descricao: 'Responsável pela manutenção e limpeza de escritórios e áreas comuns. Não exige experiência anterior, oferecemos treinamento no local.',
     empresa: empresas[0]
   },
   { 
     id: 2, 
-    empresa_id: 2, 
-    titulo: 'Designer UX/UI Pleno', 
-    descricao: 'Oportunidade para atuar no redesenho de nossa plataforma principal. Necessário domínio de Figma e conceitos de usabilidade.',
-    empresa: empresas[1]
+    empresa_id: 3, 
+    titulo: 'Ajudante de Cozinha', 
+    descricao: 'Auxiliar no preparo de ingredientes, limpeza da cozinha e organização de utensílios. Desejável vontade de aprender e pontualidade.',
+    empresa: empresas[2]
   },
   { 
     id: 3, 
-    empresa_id: 1, 
-    titulo: 'Engenheiro de Dados', 
-    descricao: 'Trabalhe com grandes volumes de dados utilizando Python e ferramentas de Big Data. Foco em automação e pipelines.',
-    empresa: empresas[0]
+    empresa_id: 2, 
+    titulo: 'Repositor de Mercadorias', 
+    descricao: 'Reposição de produtos nas gôndolas, verificação de validade e organização do estoque. Vaga ideal para primeiro emprego.',
+    empresa: empresas[1]
   },
   { 
     id: 4, 
-    empresa_id: 3, 
-    titulo: 'Gerente de Produto (PM)', 
-    descricao: 'Liderança de times multidisciplinares seguindo metodologias ágeis. Foco em entrega de valor e métricas de sucesso.',
-    empresa: empresas[2]
+    empresa_id: 2, 
+    titulo: 'Operador de Caixa', 
+    descricao: 'Atendimento ao cliente, registro de mercadorias e recebimento de pagamentos. Necessário ensino fundamental completo.',
+    empresa: empresas[1]
+  },
+  { 
+    id: 5, 
+    empresa_id: 1, 
+    titulo: 'Auxiliar de Serviços Gerais', 
+    descricao: 'Atividades diversas de manutenção, limpeza e apoio operacional. Buscamos pessoas proativas e com disposição física.',
+    empresa: empresas[0]
   },
 ];
 
 // Relacionamentos manuais para o mock
 export const vagaCursoQualificacao: VagaCursoQualificacao[] = [
-  { vaga_id: 1, curso_id: 1, bonus_aprovacao: 35 }, // Frontend -> React Avançado
-  { vaga_id: 2, curso_id: 3, bonus_aprovacao: 28 }, // Designer -> UI Design
-  { vaga_id: 3, curso_id: 4, bonus_aprovacao: 42 }, // Engenheiro de Dados -> Python Data Science
-  { vaga_id: 4, curso_id: 5, bonus_aprovacao: 20 }, // PM -> Gestão Ágil
+  { vaga_id: 1, curso_id: 1, bonus_aprovacao: 40 }, // Limpeza -> Técnicas de Limpeza
+  { vaga_id: 1, curso_id: 6, bonus_aprovacao: 20 }, // Limpeza -> Segurança
+  { vaga_id: 2, curso_id: 2, bonus_aprovacao: 45 }, // Cozinha -> Boas Práticas
+  { vaga_id: 3, curso_id: 4, bonus_aprovacao: 35 }, // Repositor -> Logística Básica
+  { vaga_id: 4, curso_id: 3, bonus_aprovacao: 50 }, // Caixa -> Atendimento e Caixa
+  { vaga_id: 5, curso_id: 6, bonus_aprovacao: 30 }, // Serviços Gerais -> Segurança
 ];

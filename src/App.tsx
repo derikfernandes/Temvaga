@@ -527,11 +527,10 @@ function LandingPage({ onStartChat, onOpenAuth }: { onStartChat: () => void, onO
                 <Sparkles className="w-3 h-3 text-gov-yellow" /> O Futuro do Trabalho no Brasil
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter mb-6 leading-tight">
-                Sua próxima <span className="text-gov-yellow">oportunidade</span> começa aqui.
+                Oportunidades para quem quer <span className="text-gov-yellow">começar</span> ou recomeçar.
               </h1>
               <p className="text-xl text-white/80 mb-10 leading-relaxed max-w-xl">
-                O TemVaga conecta cidadãos a vagas de emprego e cursos de qualificação gratuitos. 
-                Acessível, simples e focado no seu crescimento profissional.
+                Conectamos você a vagas de auxiliar, serviços gerais, comércio e muito mais, com cursos gratuitos para você se destacar.
               </p>
               <div className="flex flex-wrap gap-4">
                 <button 
@@ -566,10 +565,12 @@ function LandingPage({ onStartChat, onOpenAuth }: { onStartChat: () => void, onO
                   </div>
                 </div>
                 <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl flex justify-between items-center">
-                      <div className="h-4 w-32 bg-white/20 rounded" />
-                      <div className="h-4 w-16 bg-gov-yellow/40 rounded" />
+                  {vagas.slice(0, 3).map(vaga => (
+                    <div key={vaga.id} className="p-4 bg-white/5 border border-white/10 rounded-xl flex justify-between items-center">
+                      <div className="text-sm font-bold text-white/90">{vaga.titulo}</div>
+                      <div className="text-[10px] font-black bg-gov-yellow text-gov-blue-dark px-2 py-1 rounded uppercase tracking-wider">
+                        Disponível
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -587,7 +588,7 @@ function LandingPage({ onStartChat, onOpenAuth }: { onStartChat: () => void, onO
               Tudo o que você precisa em um só lugar
             </h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Desenvolvido para ser o substituto moderno do PAT, focando em tecnologia e facilidade de uso.
+              O substituto moderno do PAT, focado em quem busca o primeiro emprego ou novas oportunidades no setor de serviços e comércio.
             </p>
           </div>
           
