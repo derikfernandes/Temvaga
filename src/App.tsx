@@ -50,7 +50,7 @@ import {
   onSnapshot,
   serverTimestamp
 } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { auth, db } from './initFirebase';
 import { empresas, cursos, vagas, vagaCursoQualificacao } from './mockData';
 import { Vaga, Curso } from './types';
 import { generateProfileFromAudio, chatWithGemini } from './services/geminiService';

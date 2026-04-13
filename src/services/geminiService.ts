@@ -1,8 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const geminiKey = process.env.GEMINI_API_KEY;
+const ai = geminiKey ? new GoogleGenAI({ apiKey: geminiKey }) : null;
 
 export async function generateProfileFromAudio(base64Audio: string, mimeType: string): Promise<string> {
+  if (!ai) {
+    console.warn("GEMINI_API_KEY não configurada; áudio não será processado.");
+    throw new Error("IA indisponível sem API key. Digite seu resumo no campo de texto.");
+  }
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
@@ -29,6 +34,9 @@ export async function generateProfileFromAudio(base64Audio: string, mimeType: st
 }
 
 export async function chatWithGemini(userMessage: string, profileDescription: string): Promise<string> {
+  if (!ai) {
+    return "O assistente de IA não está configurado (falta GEMINI_API_KEY no .env.local). Você ainda pode navegar pelo site e usar o restante normalmente.";
+  }
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
