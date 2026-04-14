@@ -61,6 +61,15 @@ function getVertexUrl() {
   return `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${model}:generateContent`;
 }
 
+/** GET leve para testar se o proxy está no ar (sem chamar Vertex). */
+app.get('/api/vertex/health', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'vertex-proxy',
+    port: Number(process.env.VERTEX_PROXY_PORT || 8787),
+  });
+});
+
 app.post('/api/vertex/generate', async (req, res) => {
   try {
     const accessToken = await getVertexAccessToken();
@@ -75,10 +84,21 @@ app.post('/api/vertex/generate', async (req, res) => {
       body: JSON.stringify(req.body),
     });
 
-    const upstreamPayload = await upstreamResponse.json();
+    const upstreamText = await upstreamResponse.text();
+    let upstreamPayload;
+    try {
+      upstreamPayload = upstreamText.trim() ? JSON.parse(upstreamText) : {};
+    } catch (parseErr) {
+      console.error('[vertex-proxy] Resposta Vertex não é JSON:', upstreamText.slice(0, 800));
+      return res.status(502).json({
+        error: 'Vertex retornou corpo inválido (não JSON)',
+        details: { raw: upstreamText.slice(0, 2000) },
+      });
+    }
 
     if (!upstreamResponse.ok) {
-      return res.status(upstreamResponse.status).json({
+      console.error('[vertex-proxy] Vertex HTTP', upstreamResponse.status, upstreamPayload);
+      return res.status(upstreamResponse.status >= 400 ? upstreamResponse.status : 502).json({
         error: 'Vertex request failed',
         details: upstreamPayload,
       });
@@ -87,11 +107,20 @@ app.post('/api/vertex/generate', async (req, res) => {
     return res.json(upstreamPayload);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    console.error('[vertex-proxy]', message);
     return res.status(500).json({ error: message });
   }
 });
 
+app.use((err, req, res, _next) => {
+  if (res.headersSent) return;
+  console.error('[vertex-proxy] Erro não tratado:', err);
+  const message = err instanceof Error ? err.message : String(err);
+  res.status(500).json({ error: message });
+});
+
 const port = Number(process.env.VERTEX_PROXY_PORT || 8787);
-app.listen(port, () => {
-  console.log(`Vertex proxy listening on http://localhost:${port}`);
+app.listen(port, '127.0.0.1', () => {
+  console.log(`Vertex proxy listening on http://127.0.0.1:${port}`);
+  console.log(`Health check: http://127.0.0.1:${port}/api/vertex/health`);
 });
