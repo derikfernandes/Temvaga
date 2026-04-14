@@ -19,8 +19,36 @@ export default defineConfig(({mode}) => {
       hmr: process.env.DISABLE_HMR !== 'true',
       proxy: {
         '/api': {
-          target: `http://localhost:${proxyPort}`,
+          target: `http://127.0.0.1:${proxyPort}`,
           changeOrigin: true,
+          configure(proxy) {
+            proxy.on('error', (err, _req, res) => {
+              const msg =
+                err && typeof err === 'object' && 'message' in err
+                  ? String((err as NodeJS.ErrnoException).message)
+                  : String(err);
+              const code =
+                err && typeof err === 'object' && 'code' in err
+                  ? String((err as NodeJS.ErrnoException).code)
+                  : '';
+              const body = JSON.stringify({
+                error:
+                  'Não foi possível conectar ao proxy Vertex. Confira se outro terminal está rodando: npm run dev:api',
+                details: {
+                  target: `127.0.0.1:${proxyPort}`,
+                  errno: code || undefined,
+                  message: msg,
+                },
+              });
+              if (res && !res.headersSent && typeof (res as import('http').ServerResponse).writeHead === 'function') {
+                (res as import('http').ServerResponse).writeHead(502, {
+                  'Content-Type': 'application/json',
+                  'Content-Length': Buffer.byteLength(body),
+                });
+                (res as import('http').ServerResponse).end(body);
+              }
+            });
+          },
         },
       },
     },

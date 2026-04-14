@@ -22,6 +22,25 @@ const firebaseConfig: FirebaseOptions = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || placeholderConfig.appId,
 };
 
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID',
+] as const;
+
+function hasMissingFirebaseEnv() {
+  return requiredEnvVars.some((envVarName) => !import.meta.env[envVarName]);
+}
+
+if (import.meta.env.PROD && hasMissingFirebaseEnv()) {
+  throw new Error(
+    'Firebase não configurado em produção. Defina todas as variáveis VITE_FIREBASE_* no ambiente de deploy (ex.: Vercel).',
+  );
+}
+
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
