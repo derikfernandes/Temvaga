@@ -184,9 +184,9 @@ Relato do usuário: "${description}"`
     ]);
     
     let jsonStr = response.trim();
-    if (jsonStr.startsWith('```json')) jsonStr = jsonStr.substring(7);
-    if (jsonStr.startsWith('```')) jsonStr = jsonStr.substring(3);
-    if (jsonStr.endsWith('```')) jsonStr = jsonStr.substring(0, jsonStr.length - 3);
+    if (jsonStr.startsWith('\`\`\`json')) jsonStr = jsonStr.substring(7);
+    if (jsonStr.startsWith('\`\`\`')) jsonStr = jsonStr.substring(3);
+    if (jsonStr.endsWith('\`\`\`')) jsonStr = jsonStr.substring(0, jsonStr.length - 3);
     
     return JSON.parse(jsonStr.trim());
   } catch (error) {

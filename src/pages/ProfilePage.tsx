@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, FileText, Briefcase, Target, MapPin, Phone, FileBadge, GraduationCap, Building, Clock, Info, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
 import { useAppState } from '../providers/AppStateProvider';
 import { AudioRecorder } from '../components/AudioRecorder';
@@ -62,17 +62,36 @@ export function ProfilePage() {
 
   // Progress logic
   const fieldsForProgress = [
-    'nome', 'pis', 'sexo', 'racaCor', 'nascimento', 'estadoCivil', 'nacionalidade',
-    'cep', 'logradouro', 'numero', 'municipio', 'uf',
+    // Identidade
+    'nome', 'pis', 'sexo', 'racaCor', 'nascimento', 'estadoCivil', 'nacionalidade', 'deficiencia',
+    // Endereço
+    'cep', 'logradouro', 'numero', 'municipio', 'uf', 'bairro',
+    // Contato
     'emailPessoal', 'ddd', 'numeroTelefone',
-    'cpf', 'rgNumero', 'ctpsNumero',
-    'cnh', 'situacaoCandidato',
-    'escolaridade',
-    'ocupacaoDesejada', 'horarioDesejado'
+    // Documentos
+    'cpf', 'rgNumero', 'ctpsNumero', 'cnh',
+    // Socioeconômico
+    'situacaoCandidato', 'membrosFamilia', 'rendaFamiliar',
+    // Capacidade / Formação
+    'escolaridade', 'cursosTecnicos', 'cursosSuperiores', 'idiomas',
+    // Experiência
+    'expCompEmpresa', 'expCompOcupacao', 'expSemOcupacao',
+    // Pretensão
+    'ocupacaoDesejada', 'horarioDesejado', 'dispVeiculo', 'dispViagens'
   ];
-  
-  const filledFieldsCount = fieldsForProgress.filter(field => !!formData[field]).length;
+
+  const filledFieldsCount = fieldsForProgress.filter(field => {
+    const val = formData[field];
+    return val !== undefined && val !== null && val !== '';
+  }).length;
   const progressPercentage = Math.round((filledFieldsCount / fieldsForProgress.length) * 100) || 0;
+
+  // Sincroniza o perfil salvo com o estado do formulário na inicialização
+  useEffect(() => {
+    if (userProfile && Object.keys(formData).length === 0) {
+      setFormData(userProfile);
+    }
+  }, [userProfile]);
 
   const handleExtractAI = async () => {
     if (!descricaoProfissional) return;
@@ -123,6 +142,45 @@ export function ProfilePage() {
         </button>
       </div>
 
+      {/* Descrição Profissional Integrada ao IA */}
+      <div className="bg-gradient-to-r from-gov-blue/5 to-gov-blue/10 border border-gov-blue/20 rounded-xl p-6 shadow-sm mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="w-5 h-5 text-gov-blue" />
+          <h3 className="text-lg font-bold text-gov-blue-dark">Resumo e Descrição Profissional (Para Match de IA)</h3>
+        </div>
+        <p className="text-sm text-slate-600 mb-4">
+          Use áudio ou texto para descrever em detalhes o que você busca. O sistema Crias AI utilizará isso para fazer o "matching inteligente" com as vagas.
+        </p>
+        <textarea
+          rows={4}
+          className="w-full p-4 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all text-slate-600 text-sm mb-2"
+          placeholder="Conte sobre sua experiência, habilidades e o que você busca... (Ex: Designer UI/UX buscando vagas remotas)"
+          value={descricaoProfissional}
+          onChange={(e) => setDescricaoProfissional(e.target.value)}
+        />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <AudioRecorder onTranscription={(text) => setDescricaoProfissional(text)} />
+          <button
+            type="button"
+            onClick={() => void handleExtractAI()}
+            disabled={isExtracting || !descricaoProfissional}
+            className="flex items-center gap-2 px-4 py-2 bg-gov-blue/10 text-gov-blue rounded-xl font-bold hover:bg-gov-blue/20 transition-all text-sm disabled:opacity-50"
+          >
+            {isExtracting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Extraindo dados...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                <span>Preencher Perfil com IA</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Progress Bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -130,8 +188,8 @@ export function ProfilePage() {
           <span className="text-sm font-bold text-gov-blue">{progressPercentage}%</span>
         </div>
         <div className="w-full bg-slate-100 rounded-full h-3">
-          <div 
-            className="bg-gov-blue h-3 rounded-full transition-all duration-1000 ease-in-out" 
+          <div
+            className="bg-gov-blue h-3 rounded-full transition-all duration-1000 ease-in-out"
             style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
@@ -147,8 +205,8 @@ export function ProfilePage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap border
-                ${isActive 
-                  ? 'bg-gov-blue text-white border-gov-blue shadow-md' 
+                ${isActive
+                  ? 'bg-gov-blue text-white border-gov-blue shadow-md'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}
             >
               <Icon className="w-4 h-4" />
@@ -160,7 +218,7 @@ export function ProfilePage() {
 
       {/* Forms Content */}
       <div className="space-y-6">
-        
+
         {/* TAB 1: IDENTIDADE E DADOS PESSOAIS */}
         {activeTab === 'identidade' && (
           <div className="transition-opacity duration-300">
@@ -197,7 +255,7 @@ export function ProfilePage() {
               <Input label="E-mail Pessoal" type="email" name="emailPessoal" value={formData.emailPessoal || ''} onChange={handleChange} />
               <Input label="E-mail Profissional" type="email" name="emailProfissional" value={formData.emailProfissional || ''} onChange={handleChange} />
               <Checkbox label="Aceita receber informações?" name="aceitaEmailInfo" checked={formData.aceitaEmailInfo || false} onChange={handleChange} />
-              
+
               <Select label="Tipo de Telefone" name="tipoTelefone" options={['Celular', 'Fixo', 'Recado']} value={formData.tipoTelefone || ''} onChange={handleChange} />
               <div className="flex gap-2">
                 <Input label="DDD" name="ddd" maxLength={2} className="w-20" value={formData.ddd || ''} onChange={handleChange} />
@@ -287,40 +345,11 @@ export function ProfilePage() {
         {/* TAB 3: PRETENSÃO E DISPONIBILIDADE */}
         {activeTab === 'pretensao' && (
           <div className="transition-opacity duration-300">
-            {/* Descrição Profissional Integrada ao IA */}
-            <div className="bg-gradient-to-r from-gov-blue/5 to-gov-blue/10 border border-gov-blue/20 rounded-xl p-6 shadow-sm mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-gov-blue" />
-                <h3 className="text-lg font-bold text-gov-blue-dark">Resumo e Descrição Profissional (Para Match de IA)</h3>
-              </div>
-              <p className="text-sm text-slate-600 mb-4">
-                Use áudio ou texto para descrever em detalhes o que você busca. O sistema Crias AI utilizará isso para fazer o "matching inteligente" com as vagas.
-              </p>
-              <textarea
-                rows={4}
-                className="w-full p-4 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all text-slate-600 text-sm mb-2"
-                placeholder="Conte sobre sua experiência, habilidades e o que você busca... (Ex: Designer UI/UX buscando vagas remotas)"
-                value={descricaoProfissional}
-                onChange={(e) => setDescricaoProfissional(e.target.value)}
-              />
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <AudioRecorder onTranscription={(text) => setDescricaoProfissional(text)} />
-                <button
-                  type="button"
-                  onClick={() => void handleExtractAI()}
-                  disabled={isExtracting || !descricaoProfissional}
-                  className="flex items-center gap-2 px-4 py-2 bg-gov-blue/10 text-gov-blue rounded-xl font-bold hover:bg-gov-blue/20 transition-all text-sm disabled:opacity-50"
-                >
-                  {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {isExtracting ? 'Extraindo dados...' : 'Preencher Perfil com IA'}
-                </button>
-              </div>
-            </div>
 
             <Section title="8. Pretensão Profissional" icon={Target}>
               <Input label="Ocupação Desejada Principal" name="ocupacaoDesejada" className="lg:col-span-2" value={formData.ocupacaoDesejada || ''} onChange={handleChange} />
               <Select label="Horário de Trabalho Desejado" name="horarioDesejado" options={['Indiferente', 'Comercial', 'Turno']} value={formData.horarioDesejado || ''} onChange={handleChange} />
-              
+
               <div className="lg:col-span-3 mt-4">
                 <h4 className="text-sm font-bold text-slate-700 mb-2">Lista de Ocupações Pretendidas Adicionais</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
