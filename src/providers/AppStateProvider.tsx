@@ -27,8 +27,10 @@ type AppStateValue = {
   user: FirebaseUser | null;
   loading: boolean;
   userProfile: Record<string, unknown> | null;
-  myApplications: Array<Record<string, unknown> & { id: string; vaga_id?: number }>;
-  myAcquiredCourses: Array<Record<string, unknown> & { id: string; curso_id?: number }>;
+  myApplications: Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>;
+  myAcquiredCourses: Array<Record<string, unknown> & { id: string; curso_id?: string | number }>;
+  vagas: Vaga[];
+  cursos: Curso[];
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   selectedVaga: Vaga | null;
@@ -40,8 +42,8 @@ type AppStateValue = {
   descricaoProfissional: string;
   setDescricaoProfissional: (s: string) => void;
   handleUpdateProfile: () => Promise<void>;
-  handleApply: (vagaId: number) => Promise<void>;
-  handleAcquireCourse: (cursoId: number) => Promise<void>;
+  handleApply: (vagaId: string | number) => Promise<void>;
+  handleAcquireCourse: (cursoId: string | number) => Promise<void>;
 };
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -51,11 +53,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(null);
   const [myApplications, setMyApplications] = useState<
-    Array<Record<string, unknown> & { id: string; vaga_id?: number }>
+    Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>
   >([]);
   const [myAcquiredCourses, setMyAcquiredCourses] = useState<
-    Array<Record<string, unknown> & { id: string; curso_id?: number }>
+    Array<Record<string, unknown> & { id: string; curso_id?: string | number }>
   >([]);
+  const [vagas, setVagas] = useState<Vaga[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
@@ -73,6 +77,33 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const unsubCursos = onSnapshot(
+      collection(db, 'cursos'),
+      (snapshot) => {
+        setCursos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Curso)));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'cursos')
+    );
+    return () => unsubCursos();
+  }, []);
+
+  useEffect(() => {
+    const isAdmin = userProfile?.role === 'admin';
+    const qVagas = isAdmin 
+      ? collection(db, 'vagas')
+      : query(collection(db, 'vagas'), where('status', '==', 'approved'));
+      
+    const unsubVagas = onSnapshot(
+      qVagas,
+      (snapshot) => {
+        setVagas(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Vaga)));
+      },
+      (err) => handleFirestoreError(err, OperationType.LIST, 'vagas')
+    );
+    return () => unsubVagas();
+  }, [userProfile?.role]);
 
   useEffect(() => {
     if (!user || !auth.currentUser) return;
@@ -139,7 +170,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [user, descricaoProfissional]);
 
   const handleApply = useCallback(
-    async (vagaId: number) => {
+    async (vagaId: string | number) => {
       if (!user) return;
       try {
         await addDoc(collection(db, 'applications'), {
@@ -157,7 +188,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   );
 
   const handleAcquireCourse = useCallback(
-    async (cursoId: number) => {
+    async (cursoId: string | number) => {
       if (!user) return;
       if (myAcquiredCourses.some((c) => c.curso_id === cursoId)) {
         alert('Você já possui este curso!');
@@ -183,6 +214,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       userProfile,
+      vagas,
+      cursos,
       myApplications,
       myAcquiredCourses,
       searchQuery,
@@ -203,6 +236,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       userProfile,
+      vagas,
+      cursos,
       myApplications,
       myAcquiredCourses,
       searchQuery,

@@ -11,8 +11,8 @@ import {
   Zap,
   Mic,
 } from 'lucide-react';
-import { vagas } from '../mockData';
 import { PATHS } from '../routes/paths';
+import { useAppState } from '../providers/AppStateProvider';
 
 type LandingPageProps = {
   onStartChat: () => void;
@@ -20,6 +20,7 @@ type LandingPageProps = {
 
 export function LandingPage({ onStartChat }: LandingPageProps) {
   const navigate = useNavigate();
+  const { vagas } = useAppState();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const openAuth = (mode: 'login' | 'register') => {

@@ -12,7 +12,7 @@ import {
   CheckCircle2,
   PlayCircle,
 } from 'lucide-react';
-import { vagas, cursos, vagaCursoQualificacao } from '../mockData';
+import { vagaCursoQualificacao } from '../mockData';
 import type { Curso } from '../types';
 import { useAppState } from '../providers/AppStateProvider';
 import { calculateMatchScore } from '../utils/jobMatch';
@@ -27,6 +27,8 @@ export function HomeJobsPage() {
     setSelectedVaga,
     setSelectedCurso,
     handleApply,
+    vagas,
+    cursos,
   } = useAppState();
 
   const filteredVagas = useMemo(() => {

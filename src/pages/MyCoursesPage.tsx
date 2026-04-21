@@ -2,14 +2,13 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen } from 'lucide-react';
-import { cursos } from '../mockData';
 import { useAppState } from '../providers/AppStateProvider';
 import { CourseCard } from '../components/CourseCard';
 import { PATHS } from '../routes/paths';
 
 export function MyCoursesPage() {
   const navigate = useNavigate();
-  const { myAcquiredCourses, setSelectedCurso } = useAppState();
+  const { myAcquiredCourses, setSelectedCurso, cursos } = useAppState();
 
   const myCursosData = useMemo(
     () =>
@@ -18,7 +17,7 @@ export function MyCoursesPage() {
           const curso = cursos.find((c) => c.id === ac.curso_id);
           return curso ? { ...curso, progress: ac.progress as number } : null;
         })
-        .filter(Boolean) as Array<(typeof cursos)[number] & { progress: number }>,
+        .filter(Boolean) as Array<typeof cursos[number] & { progress: number }>,
     [myAcquiredCourses],
   );
 

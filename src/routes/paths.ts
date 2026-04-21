@@ -6,4 +6,8 @@ export const PATHS = {
   homeCourses: '/home/courses',
   homeMyCourses: '/home/my-courses',
   profile: '/profile',
+  admin: '/admin',
+  adminVagas: '/admin/vagas',
+  adminCursos: '/admin/cursos',
+  adminUsers: '/admin/users',
 } as const;
