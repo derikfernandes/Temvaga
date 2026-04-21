@@ -169,3 +169,28 @@ export async function chatWithGemini(userMessage: string, profileDescription: st
     return 'Desculpe, estou com dificuldades técnicas agora.';
   }
 }
+
+export async function extractProfileData(description: string): Promise<Record<string, any>> {
+  try {
+    const response = await callVertex([
+      {
+        text: `Você é um assistente de extração de dados. Leia o relato profissional abaixo e extraia as informações de forma estruturada. Retorne APENAS um objeto JSON válido (sem blocos de código de formatação markdown, apenas o JSON). Use estritamente as chaves abaixo, e preencha apenas o que puder deduzir da descrição. 
+        
+Chaves permitidas:
+nome, sexo (Feminino/Masculino/Outro), racaCor, estadoCivil, deficiencia (Sim/Não), municipio, uf, emailPessoal, ddd, numeroTelefone, escolaridade, cursosTecnicos, cursosSuperiores, idiomas, expCompEmpresa, expCompOcupacao, expCompTempo, expSemOcupacao, ocupacaoDesejada, horarioDesejado, dispVeiculo (Sim/Não), dispViagens (Sim/Não).
+
+Relato do usuário: "${description}"`
+      }
+    ]);
+    
+    let jsonStr = response.trim();
+    if (jsonStr.startsWith('\`\`\`json')) jsonStr = jsonStr.substring(7);
+    if (jsonStr.startsWith('\`\`\`')) jsonStr = jsonStr.substring(3);
+    if (jsonStr.endsWith('\`\`\`')) jsonStr = jsonStr.substring(0, jsonStr.length - 3);
+    
+    return JSON.parse(jsonStr.trim());
+  } catch (error) {
+    console.error('Erro ao extrair dados do perfil usando Vertex:', error);
+    return {};
+  }
+}
