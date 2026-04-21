@@ -264,6 +264,7 @@ export function Chatbot({ user, userProfile, isOpen, setIsOpen, showLanding }: C
             <div className="p-3 border-t border-slate-100 bg-white shrink-0">
               <AudioRecorder
                 variant="chat"
+                audioMode="transcribe"
                 sendDisabled={loading}
                 chatInput={
                   <input

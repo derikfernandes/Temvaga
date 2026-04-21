@@ -12,7 +12,7 @@ import {
   Play,
   Send,
 } from 'lucide-react';
-import { generateProfileFromAudio } from '../services/geminiService';
+import { generateProfileFromAudio, transcribeAudio } from '../services/geminiService';
 
 function formatVoiceTime(ms: number) {
   const totalSec = Math.floor(ms / 1000);
@@ -25,6 +25,8 @@ const VOICE_WAVE_BARS = 26;
 
 type AudioRecorderProps = {
   onTranscription: (text: string) => void;
+  /** `profile`: gera resumo para perfil/currículo. `transcribe`: só transcreve o que foi falado (ex.: chat). */
+  audioMode?: 'profile' | 'transcribe';
   variant?: 'button' | 'chat';
   chatInput?: ReactElement;
   onSendClick?: () => void;
@@ -33,6 +35,7 @@ type AudioRecorderProps = {
 
 export function AudioRecorder({
   onTranscription,
+  audioMode = 'profile',
   variant = 'button',
   chatInput,
   onSendClick,
@@ -230,7 +233,10 @@ export function AudioRecorder({
           }
 
           const base64data = await blobToBase64(blob);
-          const transcription = await generateProfileFromAudio(base64data, finalMimeType);
+          const transcription =
+            audioMode === 'transcribe'
+              ? await transcribeAudio(base64data, finalMimeType)
+              : await generateProfileFromAudio(base64data, finalMimeType);
           const trimmed = transcription.trim();
           if (!trimmed) {
             throw new Error('A transcrição veio vazia. Tente falar de novo, um pouco mais alto.');
@@ -482,53 +488,54 @@ export function AudioRecorder({
   return (
     <div className="flex flex-col gap-2 mt-2">
       <div className="flex flex-wrap items-center gap-2">
-        {!isRecording ? (
-          <button
-            type="button"
-            onClick={startRecording}
-            disabled={isProcessing}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gov-blue/10 text-gov-blue rounded-lg text-xs font-bold hover:bg-gov-blue/20 transition-all disabled:opacity-50"
-          >
-            {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mic className="w-3 h-3" />}
-            {isProcessing ? 'Enviando áudio…' : 'Gravar Descrição por Áudio'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={stopRecording}
-            className="flex items-center gap-2 px-3 py-1.5 bg-gov-red text-white rounded-lg text-xs font-bold animate-pulse"
-          >
-            <Square className="w-3 h-3" /> Parar e enviar
-          </button>
-        )}
-        {isRecording && (
+        <button
+          type="button"
+          disabled={isProcessing}
+          onClick={() => {
+            if (isProcessing) return;
+            if (isRecording) stopRecording();
+            else void startRecording();
+          }}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
+            isRecording && !isProcessing
+              ? 'bg-gov-red text-white animate-pulse'
+              : 'bg-gov-blue/10 text-gov-blue hover:bg-gov-blue/20'
+          }`}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Enviando áudio…
+            </>
+          ) : isRecording ? (
+            <>
+              <Square className="w-3 h-3 shrink-0" />
+              Parar e enviar
+            </>
+          ) : (
+            <>
+              <Mic className="w-3 h-3 shrink-0" />
+              Gravar Descrição por Áudio
+            </>
+          )}
+        </button>
+        {isRecording && !isProcessing && (
           <span className="text-[10px] text-gov-red font-bold animate-pulse uppercase tracking-widest">
             Gravando…
           </span>
         )}
         {successFlash && !isRecording && !isProcessing && (
-          <motion.span
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-[10px] text-emerald-600 font-bold flex items-center gap-1"
-          >
+          <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" /> Áudio recebido e texto atualizado
-          </motion.span>
+          </span>
         )}
       </div>
-      <AnimatePresence>
-        {!!errorMessage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-start gap-2 text-[10px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"
-          >
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {!!errorMessage && (
+        <div className="flex items-start gap-2 text-[10px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
