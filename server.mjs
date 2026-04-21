@@ -4,12 +4,22 @@ import { forwardVertexGenerate } from './vertex-proxy-logic.mjs';
 const app = express();
 app.use(express.json({ limit: '20mb' }));
 
+const VERTEX_REQUIRED_ENV = [
+  'GOOGLE_OAUTH_CLIENT_ID',
+  'GOOGLE_OAUTH_CLIENT_SECRET',
+  'GOOGLE_OAUTH_REFRESH_TOKEN',
+  'VERTEX_PROJECT_ID',
+];
+
 /** GET leve para testar se o proxy está no ar (sem chamar Vertex). */
 app.get('/api/vertex/health', (_req, res) => {
+  const missingEnvVars = VERTEX_REQUIRED_ENV.filter((k) => !process.env[k]);
   res.json({
     ok: true,
     service: 'vertex-proxy',
     port: Number(process.env.VERTEX_PROXY_PORT || 8787),
+    vertexEnvOk: missingEnvVars.length === 0,
+    ...(missingEnvVars.length ? { missingEnvVars } : {}),
   });
 });
 

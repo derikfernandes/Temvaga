@@ -15,6 +15,12 @@ function extractVertexErrorMessage(payload: Record<string, unknown>, status: num
   if (typeof top === 'string' && top.trim()) {
     return top;
   }
+  if (top && typeof top === 'object') {
+    const msg = (top as { message?: unknown }).message;
+    if (typeof msg === 'string' && msg.trim()) {
+      return msg;
+    }
+  }
   const details = payload.details;
   if (details && typeof details === 'object' && details !== null) {
     const d = details as Record<string, unknown>;
@@ -116,6 +122,29 @@ export async function generateProfileFromAudio(base64Audio: string, mimeType: st
       throw error;
     }
     throw new Error('Não foi possível processar o áudio. Tente novamente ou digite sua descrição.');
+  }
+}
+
+/** Transcrição fiel do áudio, sem reformatar como currículo ou resumo profissional. */
+export async function transcribeAudio(base64Audio: string, mimeType: string): Promise<string> {
+  try {
+    return await callVertex([
+      {
+        inlineData: {
+          data: base64Audio,
+          mimeType,
+        },
+      },
+      {
+        text: 'Transcreva o áudio para texto em Português do Brasil. Seja fiel ao que foi dito: não resuma, não transforme em currículo, não adicione seções nem rótulos (como "Experiência" ou "Objetivo"). Preserve números, datas e documentos como foram falados quando fizer sentido. Se partes estiverem inaudíveis, use [inaudível]. Retorne APENAS o texto transcrito, sem introdução nem comentários.',
+      },
+    ]);
+  } catch (error) {
+    console.error('[Vertex/audio] Falha ao transcrever áudio:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Não foi possível transcrever o áudio. Tente novamente ou digite sua mensagem.');
   }
 }
 
