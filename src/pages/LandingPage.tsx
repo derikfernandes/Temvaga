@@ -61,6 +61,13 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
             <div className="hidden md:flex items-center gap-4">
               <button
                 type="button"
+                onClick={() => navigate(PATHS.companyLogin)}
+                className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 rounded-lg transition-colors"
+              >
+                Sou Empresa
+              </button>
+              <button
+                type="button"
                 onClick={() => openAuth('login')}
                 className="px-4 py-2 text-sm font-bold text-gov-blue hover:bg-gov-blue/5 rounded-lg transition-colors"
               >
@@ -115,6 +122,16 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
                   className="w-full py-3 text-left font-bold text-gov-blue"
                 >
                   Criar Conta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(PATHS.companyLogin);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full py-3 text-left font-bold text-indigo-600 border-b border-slate-50"
+                >
+                  Sou Empresa
                 </button>
                 <button
                   type="button"
