@@ -17,6 +17,13 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminVagasPage } from './pages/admin/AdminVagasPage';
 import { AdminCursosPage } from './pages/admin/AdminCursosPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { RequireCompany } from './routes/RequireCompany';
+import { CompanyShell } from './layouts/CompanyShell';
+import { CompanyLoginPage } from './pages/CompanyLoginPage';
+import { CompanyDashboardPage } from './pages/company/CompanyDashboardPage';
+import { CompanyVagasPage } from './pages/company/CompanyVagasPage';
+import { CompanyApplicantsPage } from './pages/company/CompanyApplicantsPage';
+import { CompanyProfilePage } from './pages/company/CompanyProfilePage';
 function GlobalLoading() {
   const { loading } = useAppState();
   if (!loading) return null;
@@ -62,6 +69,17 @@ function AppRoutes() {
             <Route path={PATHS.adminUsers} element={<AdminUsersPage />} />
           </Route>
         </Route>
+
+        <Route path={PATHS.companyLogin} element={<CompanyLoginPage />} />
+        <Route element={<RequireCompany />}>
+          <Route element={<CompanyShell />}>
+            <Route path={PATHS.company} element={<CompanyDashboardPage />} />
+            <Route path={PATHS.companyVagas} element={<CompanyVagasPage />} />
+            <Route path={PATHS.companyApplicants} element={<CompanyApplicantsPage />} />
+            <Route path={PATHS.companyProfile} element={<CompanyProfilePage />} />
+          </Route>
+        </Route>
+
         <Route path="*" element={<Navigate to={PATHS.root} replace />} />
       </Routes>
 

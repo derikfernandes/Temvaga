@@ -1,5 +1,5 @@
 export interface Empresa {
-  id: number;
+  id: string | number;
   nome: string;
   nome_fantasia?: string;
   cnpj: string;
@@ -17,15 +17,16 @@ export interface Curso {
 
 export interface Vaga {
   id: string | number;
-  empresa_id: number;
+  empresa_id: string | number;
   titulo: string;
   descricao: string;
   empresa?: Empresa;
   status?: 'pending' | 'approved' | 'rejected';
+  cursos_recomendados?: string[];
 }
 
 export interface VagaCursoQualificacao {
-  vaga_id: number;
-  curso_id: number;
+  vaga_id: string | number;
+  curso_id: string | number;
   bonus_aprovacao: number; // Percentage bonus for this course on this job
 }
