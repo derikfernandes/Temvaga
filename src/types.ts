@@ -6,7 +6,7 @@ export interface Empresa {
 }
 
 export interface Curso {
-  id: number;
+  id: string | number;
   nome: string;
   quem_criou: string;
   data_de_criacao: string;
@@ -16,11 +16,12 @@ export interface Curso {
 }
 
 export interface Vaga {
-  id: number;
+  id: string | number;
   empresa_id: number;
   titulo: string;
   descricao: string;
   empresa?: Empresa;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface VagaCursoQualificacao {

@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, GraduationCap } from 'lucide-react';
-import { cursos } from '../mockData';
 import { useAppState } from '../providers/AppStateProvider';
 import { CourseCard } from '../components/CourseCard';
 
 export function CoursesPage() {
-  const { searchQuery, setSearchQuery, myAcquiredCourses, setSelectedCurso } = useAppState();
+  const { searchQuery, setSearchQuery, myAcquiredCourses, setSelectedCurso, cursos } = useAppState();
 
   const filteredCursos = useMemo(
     () =>

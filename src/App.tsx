@@ -11,7 +11,12 @@ import { CoursesPage } from './pages/CoursesPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { Chatbot } from './components/Chatbot';
-
+import { RequireAdmin } from './routes/RequireAdmin';
+import { AdminShell } from './layouts/AdminShell';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminVagasPage } from './pages/admin/AdminVagasPage';
+import { AdminCursosPage } from './pages/admin/AdminCursosPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 function GlobalLoading() {
   const { loading } = useAppState();
   if (!loading) return null;
@@ -47,6 +52,14 @@ function AppRoutes() {
             <Route path={PATHS.homeCourses} element={<CoursesPage />} />
             <Route path={PATHS.homeMyCourses} element={<MyCoursesPage />} />
             <Route path={PATHS.profile} element={<ProfilePage />} />
+          </Route>
+        </Route>
+        <Route element={<RequireAdmin />}>
+          <Route element={<AdminShell />}>
+            <Route path={PATHS.admin} element={<AdminDashboardPage />} />
+            <Route path={PATHS.adminVagas} element={<AdminVagasPage />} />
+            <Route path={PATHS.adminCursos} element={<AdminCursosPage />} />
+            <Route path={PATHS.adminUsers} element={<AdminUsersPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to={PATHS.root} replace />} />
