@@ -32,7 +32,7 @@ export function AdminShell() {
 
   const navItems = [
     { to: PATHS.admin, label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { to: PATHS.adminVagas, label: 'Aprovar Vagas', icon: Briefcase, end: false },
+    { to: PATHS.adminVagas, label: 'Vagas', icon: Briefcase, end: false },
     { to: PATHS.adminCursos, label: 'Cursos', icon: GraduationCap, end: false },
     { to: PATHS.adminUsers, label: 'Usuários', icon: Users, end: false },
   ];

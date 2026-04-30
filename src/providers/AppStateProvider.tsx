@@ -79,15 +79,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const isAdmin = userProfile?.role === 'admin';
+    const qCursos = isAdmin
+      ? collection(db, 'cursos')
+      : query(collection(db, 'cursos'), where('status', '==', 'approved'));
+
     const unsubCursos = onSnapshot(
-      collection(db, 'cursos'),
+      qCursos,
       (snapshot) => {
         setCursos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Curso)));
       },
       (err) => handleFirestoreError(err, OperationType.LIST, 'cursos')
     );
     return () => unsubCursos();
-  }, []);
+  }, [userProfile?.role]);
 
   useEffect(() => {
     const isAdmin = userProfile?.role === 'admin';
