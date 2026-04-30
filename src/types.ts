@@ -13,6 +13,7 @@ export interface Curso {
   tags: string; // Comma separated tags
   conteudo?: string; // Markdown or plain text content
   url?: string; // External course link
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 export interface Vaga {
