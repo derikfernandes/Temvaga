@@ -111,7 +111,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [userProfile?.role]);
 
   useEffect(() => {
-    if (!user || !auth.currentUser) return;
+    if (!user) return;
 
     const unsubProfile = onSnapshot(
       doc(db, 'users', user.uid),
@@ -120,6 +120,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           const data = snap.data();
           setUserProfile(data);
           setDescricaoProfissional((data.descricao_profissional as string) || '');
+        } else {
+          setUserProfile(null);
+          setDescricaoProfissional('');
         }
         setLoading(false);
       },

@@ -3,14 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppState } from '../providers/AppStateProvider';
 import { motion } from 'motion/react';
 import { Building2, Lock, Mail, X, ShieldCheck, AlertCircle, Briefcase } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../initFirebase';
 import { PATHS } from '../routes/paths';
 
 export function CompanyLoginPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAppState();
+  const { user, loading: authLoading, userProfile } = useAppState();
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authError, setAuthError] = useState('');
@@ -22,12 +22,12 @@ export function CompanyLoginPage() {
   const [nomeFantasia, setNomeFantasia] = useState('');
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && userProfile?.role === 'empresa') {
       navigate(PATHS.company, { replace: true });
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, userProfile, navigate]);
 
-  if (authLoading || user) return null;
+  if (authLoading) return null;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,11 +49,12 @@ export function CompanyLoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      navigate(PATHS.company, { replace: true });
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : String(err));
     }
   };
+
+  const isLoggedAsAnotherRole = !!user && userProfile?.role !== 'empresa';
 
   return (
     <div className="min-h-screen bg-indigo-50 flex flex-col items-center justify-center p-4">
@@ -94,7 +95,26 @@ export function CompanyLoginPage() {
             </p>
           </div>
 
-          <form onSubmit={(e) => void handleAuth(e)} className="space-y-4">
+          {isLoggedAsAnotherRole && (
+            <div className="p-4 mb-6 bg-amber-50 border border-amber-100 rounded-xl text-amber-800 text-sm space-y-3">
+              <p>
+                A conta atual nao possui perfil de empresa. Use uma conta empresarial para acessar esta area.
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  await signOut(auth);
+                  setAuthError('');
+                }}
+                className="w-full py-2 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-700 transition-colors"
+              >
+                Sair desta conta e entrar como empresa
+              </button>
+            </div>
+          )}
+
+          {!isLoggedAsAnotherRole && (
+            <form onSubmit={(e) => void handleAuth(e)} className="space-y-4">
             {authMode === 'register' && (
               <>
                 <div className="space-y-1">
@@ -188,20 +208,23 @@ export function CompanyLoginPage() {
             >
               {authMode === 'login' ? 'Entrar no Painel' : 'Criar Conta de Empresa'}
             </button>
-          </form>
+            </form>
+          )}
 
-          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-            <p className="text-slate-500 text-sm">
-              {authMode === 'login' ? 'Ainda não cadastrou sua empresa?' : 'Já possui cadastro?'}
-              <button
-                type="button"
-                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                className="ml-2 text-indigo-600 font-bold hover:underline"
-              >
-                {authMode === 'login' ? 'Cadastre aqui' : 'Faça Login'}
-              </button>
-            </p>
-          </div>
+          {!isLoggedAsAnotherRole && (
+            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+              <p className="text-slate-500 text-sm">
+                {authMode === 'login' ? 'Ainda não cadastrou sua empresa?' : 'Já possui cadastro?'}
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="ml-2 text-indigo-600 font-bold hover:underline"
+                >
+                  {authMode === 'login' ? 'Cadastre aqui' : 'Faça Login'}
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
