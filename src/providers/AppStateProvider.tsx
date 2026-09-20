@@ -23,12 +23,25 @@ import { auth, db } from '../initFirebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreErrors';
 import type { Vaga, Curso } from '../types';
 
+type AppRecord = Record<string, unknown> & { id: string; vaga_id?: string | number };
+type CourseRecord = Record<string, unknown> & { id: string; curso_id?: string | number };
+
+export type DemoSessionPayload = {
+  user: FirebaseUser;
+  profile: Record<string, unknown>;
+  vagas: Vaga[];
+  cursos: Curso[];
+  applications: AppRecord[];
+  acquiredCourses: CourseRecord[];
+  descricao: string;
+};
+
 type AppStateValue = {
   user: FirebaseUser | null;
   loading: boolean;
   userProfile: Record<string, unknown> | null;
-  myApplications: Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>;
-  myAcquiredCourses: Array<Record<string, unknown> & { id: string; curso_id?: string | number }>;
+  myApplications: AppRecord[];
+  myAcquiredCourses: CourseRecord[];
   vagas: Vaga[];
   cursos: Curso[];
   searchQuery: string;
@@ -44,20 +57,20 @@ type AppStateValue = {
   handleUpdateProfile: () => Promise<void>;
   handleApply: (vagaId: string | number) => Promise<void>;
   handleAcquireCourse: (cursoId: string | number) => Promise<void>;
+  demoMode: boolean;
+  applyDemoSession: (payload: DemoSessionPayload) => void;
+  clearDemoSession: () => void;
 };
 
 const AppStateContext = createContext<AppStateValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
+  const [demoMode, setDemoMode] = useState(false);
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(null);
-  const [myApplications, setMyApplications] = useState<
-    Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>
-  >([]);
-  const [myAcquiredCourses, setMyAcquiredCourses] = useState<
-    Array<Record<string, unknown> & { id: string; curso_id?: string | number }>
-  >([]);
+  const [myApplications, setMyApplications] = useState<AppRecord[]>([]);
+  const [myAcquiredCourses, setMyAcquiredCourses] = useState<CourseRecord[]>([]);
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [cursos, setCursos] = useState<Curso[]>([]);
 
@@ -67,7 +80,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [descricaoProfissional, setDescricaoProfissional] = useState('');
 
+  const applyDemoSession = useCallback((payload: DemoSessionPayload) => {
+    setDemoMode(true);
+    setUser(payload.user);
+    setUserProfile(payload.profile);
+    setVagas(payload.vagas);
+    setCursos(payload.cursos);
+    setMyApplications(payload.applications);
+    setMyAcquiredCourses(payload.acquiredCourses);
+    setDescricaoProfissional(payload.descricao);
+    setLoading(false);
+  }, []);
+
+  const clearDemoSession = useCallback(() => {
+    setDemoMode(false);
+    setUser(null);
+    setUserProfile(null);
+    setVagas([]);
+    setCursos([]);
+    setMyApplications([]);
+    setMyAcquiredCourses([]);
+    setDescricaoProfissional('');
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
+    if (demoMode) return;
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (!u) {
@@ -76,9 +114,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     });
     return unsubscribe;
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
+    if (demoMode) return;
+
     const isAdmin = userProfile?.role === 'admin';
     const qCursos = isAdmin
       ? collection(db, 'cursos')
@@ -89,29 +129,31 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       (snapshot) => {
         setCursos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Curso)));
       },
-      (err) => handleFirestoreError(err, OperationType.LIST, 'cursos')
+      (err) => handleFirestoreError(err, OperationType.LIST, 'cursos'),
     );
     return () => unsubCursos();
-  }, [userProfile?.role]);
+  }, [userProfile?.role, demoMode]);
 
   useEffect(() => {
+    if (demoMode) return;
+
     const isAdmin = userProfile?.role === 'admin';
-    const qVagas = isAdmin 
+    const qVagas = isAdmin
       ? collection(db, 'vagas')
       : query(collection(db, 'vagas'), where('status', '==', 'approved'));
-      
+
     const unsubVagas = onSnapshot(
       qVagas,
       (snapshot) => {
         setVagas(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Vaga)));
       },
-      (err) => handleFirestoreError(err, OperationType.LIST, 'vagas')
+      (err) => handleFirestoreError(err, OperationType.LIST, 'vagas'),
     );
     return () => unsubVagas();
-  }, [userProfile?.role]);
+  }, [userProfile?.role, demoMode]);
 
   useEffect(() => {
-    if (!user) return;
+    if (demoMode || !user) return;
 
     const unsubProfile = onSnapshot(
       doc(db, 'users', user.uid),
@@ -159,10 +201,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       unsubApps();
       unsubCourses();
     };
-  }, [user]);
+  }, [user, demoMode]);
 
   const handleUpdateProfile = useCallback(async () => {
     if (!user) return;
+    if (demoMode) {
+      setUserProfile((prev) => ({ ...(prev || {}), descricao_profissional: descricaoProfissional }));
+      alert('Perfil atualizado (modo demo local).');
+      return;
+    }
     try {
       await setDoc(
         doc(db, 'users', user.uid),
@@ -175,11 +222,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     }
-  }, [user, descricaoProfissional]);
+  }, [user, descricaoProfissional, demoMode]);
 
   const handleApply = useCallback(
     async (vagaId: string | number) => {
       if (!user) return;
+      if (demoMode) {
+        if (myApplications.some((a) => a.vaga_id === vagaId)) {
+          alert('Você já se candidatou (demo).');
+          return;
+        }
+        setMyApplications((prev) => [
+          ...prev,
+          { id: `demo-app-${Date.now()}`, vaga_id: vagaId, status: 'applied' },
+        ]);
+        alert('Candidatura enviada (modo demo local).');
+        return;
+      }
       try {
         await addDoc(collection(db, 'applications'), {
           vaga_id: vagaId,
@@ -192,7 +251,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         handleFirestoreError(err, OperationType.CREATE, 'applications');
       }
     },
-    [user],
+    [user, demoMode, myApplications],
   );
 
   const handleAcquireCourse = useCallback(
@@ -200,6 +259,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       if (!user) return;
       if (myAcquiredCourses.some((c) => c.curso_id === cursoId)) {
         alert('Você já possui este curso!');
+        return;
+      }
+      if (demoMode) {
+        setMyAcquiredCourses((prev) => [
+          ...prev,
+          { id: `demo-ac-${Date.now()}`, curso_id: cursoId, progress: 0 },
+        ]);
+        alert('Curso adicionado (modo demo local).');
         return;
       }
       try {
@@ -214,7 +281,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         handleFirestoreError(err, OperationType.CREATE, 'acquired_courses');
       }
     },
-    [user, myAcquiredCourses],
+    [user, myAcquiredCourses, demoMode],
   );
 
   const value = useMemo<AppStateValue>(
@@ -239,6 +306,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       handleUpdateProfile,
       handleApply,
       handleAcquireCourse,
+      demoMode,
+      applyDemoSession,
+      clearDemoSession,
     }),
     [
       user,
@@ -256,6 +326,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       handleUpdateProfile,
       handleApply,
       handleAcquireCourse,
+      demoMode,
+      applyDemoSession,
+      clearDemoSession,
     ],
   );
 

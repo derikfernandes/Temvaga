@@ -18,10 +18,10 @@ export function CompanyProfilePage() {
   useEffect(() => {
     if (userProfile) {
       setFormData({
-        nome_completo: userProfile.nome_completo || '',
-        nome_fantasia: (userProfile as any).nome_fantasia || '',
-        cnpj: (userProfile as any).cnpj || '',
-        descricao_profissional: userProfile.descricao_profissional || '',
+        nome_completo: String(userProfile.nome_completo || ''),
+        nome_fantasia: String((userProfile as { nome_fantasia?: string }).nome_fantasia || ''),
+        cnpj: String((userProfile as { cnpj?: string }).cnpj || ''),
+        descricao_profissional: String(userProfile.descricao_profissional || ''),
       });
     }
   }, [userProfile]);

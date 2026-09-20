@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppStateProvider, useAppState } from './providers/AppStateProvider';
 import { PATHS } from './routes/paths';
@@ -11,6 +11,7 @@ import { CoursesPage } from './pages/CoursesPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { Chatbot } from './components/Chatbot';
+import { DemoModeSync } from './components/DemoModeSync';
 import { RequireAdmin } from './routes/RequireAdmin';
 import { AdminShell } from './layouts/AdminShell';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -24,6 +25,17 @@ import { CompanyDashboardPage } from './pages/company/CompanyDashboardPage';
 import { CompanyVagasPage } from './pages/company/CompanyVagasPage';
 import { CompanyApplicantsPage } from './pages/company/CompanyApplicantsPage';
 import { CompanyProfilePage } from './pages/company/CompanyProfilePage';
+
+function DemoBanner() {
+  const { demoMode } = useAppState();
+  if (!demoMode) return null;
+  return (
+    <div className="bg-gov-yellow text-gov-blue-dark text-center text-[11px] font-bold py-1 px-3 uppercase tracking-wider relative z-[60]">
+      Modo demo local (Firebase não configurado) — dados de seed para QA
+    </div>
+  );
+}
+
 function GlobalLoading() {
   const { loading } = useAppState();
   if (!loading) return null;
@@ -37,7 +49,6 @@ function GlobalLoading() {
         <div className="w-2 h-8 bg-gov-red rounded-sm animate-bounce [animation-delay:0.15s]" />
       </div>
       <p className="text-gov-blue font-black text-xl tracking-tighter">TemVaga</p>
-      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2"></p>
     </div>
   );
 }
@@ -46,10 +57,18 @@ function AppRoutes() {
   const { user, userProfile } = useAppState();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const location = useLocation();
-  const showLandingChat = !user && location.pathname === PATHS.root;
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('chat') === '1') {
+      setIsChatOpen(true);
+    }
+  }, [location.search]);
 
   return (
     <>
+      <DemoModeSync />
+      <DemoBanner />
       <Routes>
         <Route path={PATHS.root} element={<LandingRoute onStartChat={() => setIsChatOpen(true)} />} />
         <Route path={PATHS.login} element={<LoginPage />} />
@@ -88,7 +107,6 @@ function AppRoutes() {
         userProfile={userProfile}
         isOpen={isChatOpen}
         setIsOpen={setIsChatOpen}
-        showLanding={showLandingChat}
       />
       <GlobalLoading />
     </>

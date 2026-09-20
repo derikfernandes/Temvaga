@@ -1,9 +1,11 @@
 import { useAppState } from '../../providers/AppStateProvider';
-import { BarChart3, Briefcase, GraduationCap, Users } from 'lucide-react';
+import { BarChart3, Briefcase, GraduationCap, Users, Link2, AlertTriangle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { collection, getCountFromServer, getDocs } from 'firebase/firestore';
 import { db } from '../../initFirebase';
 import { SeedDataButton } from '../../components/SeedDataButton';
+import { vagaCursoQualificacao } from '../../mockData';
+import { buildJobCourseCoverage } from '../../utils/courseJobGap';
 
 type SimpleInteraction = {
   user_uid?: string;
@@ -26,21 +28,38 @@ type ActiveUser = {
 };
 
 export function AdminDashboardPage() {
-  const { vagas, cursos } = useAppState();
+  const { vagas, cursos, demoMode } = useAppState();
   const [userCount, setUserCount] = useState(0);
   const [applications, setApplications] = useState<SimpleInteraction[]>([]);
   const [acquiredCourses, setAcquiredCourses] = useState<SimpleInteraction[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (demoMode) {
+      setUserCount(12);
+      setApplications([
+        { user_uid: 'u1', vaga_id: 1 },
+        { user_uid: 'u2', vaga_id: 1 },
+        { user_uid: 'u3', vaga_id: 4 },
+      ]);
+      setAcquiredCourses([
+        { user_uid: 'u1', curso_id: 1 },
+        { user_uid: 'u2', curso_id: 3 },
+      ]);
+      setUsersMap({ u1: 'Ana', u2: 'Bruno', u3: 'Carla' });
+      return;
+    }
+
     getCountFromServer(collection(db, 'users'))
       .then((snap) => {
         setUserCount(snap.data().count);
       })
       .catch(console.error);
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
+    if (demoMode) return;
+
     const loadAnalytics = async () => {
       try {
         const [usersSnap, appsSnap, acquiredSnap] = await Promise.all([
@@ -64,7 +83,7 @@ export function AdminDashboardPage() {
     };
 
     void loadAnalytics();
-  }, []);
+  }, [demoMode]);
 
   const pendingVagas = vagas.filter(v => v.status === 'pending').length;
   const approvedVagas = vagas.filter(v => v.status === 'approved').length;
@@ -145,13 +164,21 @@ export function AdminDashboardPage() {
   const maxCursos = topCursos[0]?.count || 1;
   const maxUsers = topUsers[0]?.total || 1;
 
+  const courseCoverage = useMemo(
+    () => buildJobCourseCoverage(vagas.filter((v) => v.status === 'approved' || !v.status), cursos, vagaCursoQualificacao),
+    [vagas, cursos],
+  );
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-extrabold text-slate-800 mb-8">Dashboard Overview</h1>
+      <h1 className="text-3xl font-extrabold text-slate-800 mb-2">Dashboard Overview</h1>
+      <p className="text-sm text-slate-500 mb-8">
+        Monitoramento de usuários, vagas, cursos e cobertura curso × vaga.
+      </p>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl">
+          <div className="p-4 bg-gov-blue/10 text-gov-blue rounded-xl">
             <Users className="w-8 h-8" />
           </div>
           <div>
@@ -161,7 +188,7 @@ export function AdminDashboardPage() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="p-4 bg-emerald-50 text-emerald-600 rounded-xl">
+          <div className="p-4 bg-gov-green/10 text-gov-green rounded-xl">
             <Briefcase className="w-8 h-8" />
           </div>
           <div>
@@ -172,21 +199,81 @@ export function AdminDashboardPage() {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="p-4 bg-purple-50 text-purple-600 rounded-xl">
+          <div className="p-4 bg-gov-yellow/20 text-gov-blue-dark rounded-xl">
             <GraduationCap className="w-8 h-8" />
           </div>
           <div>
             <p className="text-sm font-bold text-slate-400 uppercase">Cursos Inseridos</p>
             <p className="text-3xl font-black text-slate-800">{cursos.length}</p>
-            <p className="text-xs text-purple-500 font-bold mt-1">{approvedCursos} aprovados</p>
+            <p className="text-xs text-gov-blue font-bold mt-1">{approvedCursos} aprovados</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="p-4 bg-amber-50 text-amber-600 rounded-xl">
+            <Link2 className="w-8 h-8" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-400 uppercase">Cobertura Curso×Vaga</p>
+            <p className="text-3xl font-black text-slate-800">{courseCoverage.coveragePct}%</p>
+            <p className="text-xs text-slate-500 font-bold mt-1">
+              {courseCoverage.withCourses} com cursos · {courseCoverage.withoutCourses} sem
+            </p>
           </div>
         </div>
       </div>
 
+      <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-12">
+        <div className="flex items-center gap-2 mb-2">
+          <Link2 className="w-5 h-5 text-gov-blue" />
+          <h2 className="text-lg font-bold text-slate-800">Monitoramento: cursos necessários por vaga</h2>
+        </div>
+        <p className="text-sm text-slate-500 mb-5">
+          Cruza vagas aprovadas com cursos recomendados (documento Firestore + relações de seed).
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                <th className="py-2 pr-4 font-bold">Vaga</th>
+                <th className="py-2 pr-4 font-bold">Cursos</th>
+                <th className="py-2 font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {courseCoverage.items.slice(0, 12).map((item) => (
+                <tr key={item.vagaId} className="border-b border-slate-50">
+                  <td className="py-3 pr-4 font-semibold text-slate-800">{item.titulo}</td>
+                  <td className="py-3 pr-4 text-slate-600">
+                    {item.courseNames.length > 0 ? item.courseNames.join(' · ') : '—'}
+                  </td>
+                  <td className="py-3">
+                    {item.hasRecommendations ? (
+                      <span className="text-gov-green font-bold text-xs">{item.recommendedCount} vinculado(s)</span>
+                    ) : (
+                      <span className="text-amber-600 font-bold text-xs inline-flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Sem cursos
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {courseCoverage.items.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="py-4 text-slate-500">
+                    Nenhuma vaga carregada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-12">
         <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-indigo-600" />
+            <BarChart3 className="w-5 h-5 text-gov-blue" />
             <h2 className="text-lg font-bold text-slate-800">Vagas Mais Procuradas</h2>
           </div>
           <div className="space-y-4">
@@ -198,7 +285,7 @@ export function AdminDashboardPage() {
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-indigo-500 rounded-full"
+                    className="h-full bg-gov-blue rounded-full"
                     style={{ width: `${(item.count / maxVagas) * 100}%` }}
                   />
                 </div>
@@ -210,7 +297,7 @@ export function AdminDashboardPage() {
 
         <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-emerald-600" />
+            <BarChart3 className="w-5 h-5 text-gov-green" />
             <h2 className="text-lg font-bold text-slate-800">Cursos Mais Procurados</h2>
           </div>
           <div className="space-y-4">
@@ -222,7 +309,7 @@ export function AdminDashboardPage() {
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full"
+                    className="h-full bg-gov-green rounded-full"
                     style={{ width: `${(item.count / maxCursos) * 100}%` }}
                   />
                 </div>
@@ -234,7 +321,7 @@ export function AdminDashboardPage() {
 
         <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-5">
-            <BarChart3 className="w-5 h-5 text-purple-600" />
+            <BarChart3 className="w-5 h-5 text-gov-blue-dark" />
             <h2 className="text-lg font-bold text-slate-800">Usuários Mais Ativos</h2>
           </div>
           <div className="space-y-4">
@@ -246,7 +333,7 @@ export function AdminDashboardPage() {
                 </div>
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-1">
                   <div
-                    className="h-full bg-purple-500 rounded-full"
+                    className="h-full bg-gov-blue-dark rounded-full"
                     style={{ width: `${(item.total / maxUsers) * 100}%` }}
                   />
                 </div>

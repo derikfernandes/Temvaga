@@ -62,7 +62,7 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
               <button
                 type="button"
                 onClick={() => navigate(PATHS.companyLogin)}
-                className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-indigo-600 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-gov-blue rounded-lg transition-colors"
               >
                 Sou Empresa
               </button>
@@ -129,7 +129,7 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
                     navigate(PATHS.companyLogin);
                     setIsMenuOpen(false);
                   }}
-                  className="w-full py-3 text-left font-bold text-indigo-600 border-b border-slate-50"
+                  className="w-full py-3 text-left font-bold text-gov-blue border-b border-slate-50"
                 >
                   Sou Empresa
                 </button>
@@ -171,6 +171,7 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={onStartChat}
+                  data-testid="temvaga-chat-cta"
                   className="px-8 py-4 bg-gov-yellow text-gov-blue-dark rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-gov-yellow/20 flex items-center gap-2"
                 >
                   TemVaga? <MessageSquare className="w-5 h-5" />
