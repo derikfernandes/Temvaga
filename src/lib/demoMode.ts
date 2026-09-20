@@ -15,15 +15,7 @@ export function isFirebasePlaceholder(): boolean {
 export function readDemoRoleFromLocation(search = window.location.search): DemoRole | null {
   const params = new URLSearchParams(search);
   const raw = params.get('demo');
-  if (!raw) {
-    try {
-      const stored = localStorage.getItem('temvaga_demo_role');
-      if (stored === 'candidato' || stored === 'admin' || stored === 'empresa') return stored;
-    } catch {
-      /* ignore */
-    }
-    return null;
-  }
+  if (!raw) return null;
   if (raw === '1' || raw === 'true' || raw === 'candidato') return 'candidato';
   if (raw === 'admin') return 'admin';
   if (raw === 'empresa') return 'empresa';

@@ -171,6 +171,7 @@ export function LandingPage({ onStartChat }: LandingPageProps) {
                 <button
                   type="button"
                   onClick={onStartChat}
+                  data-testid="temvaga-chat-cta"
                   className="px-8 py-4 bg-gov-yellow text-gov-blue-dark rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-gov-yellow/20 flex items-center gap-2"
                 >
                   TemVaga? <MessageSquare className="w-5 h-5" />

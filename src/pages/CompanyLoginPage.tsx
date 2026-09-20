@@ -57,10 +57,10 @@ export function CompanyLoginPage() {
   const isLoggedAsAnotherRole = !!user && userProfile?.role !== 'empresa';
 
   return (
-    <div className="min-h-screen bg-indigo-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gov-gray-light flex flex-col items-center justify-center p-4">
       <Link
         to={PATHS.root}
-        className="absolute top-6 left-6 text-sm font-bold text-indigo-600 hover:underline"
+        className="absolute top-6 left-6 text-sm font-bold text-gov-blue hover:underline"
       >
         ← Voltar ao início
       </Link>
@@ -72,16 +72,16 @@ export function CompanyLoginPage() {
       >
         <Link
           to={PATHS.root}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-gov-blue transition-colors"
         >
           <X className="w-6 h-6" />
         </Link>
         <div className="p-8 sm:p-12">
           <div className="flex items-center gap-3 mb-8 justify-center">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
+            <div className="w-12 h-12 bg-gov-blue rounded-xl flex items-center justify-center shadow-lg shadow-gov-blue/30">
               <Building2 className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-3xl font-black text-indigo-900 tracking-tighter">Portal da Empresa</h2>
+            <h2 className="text-3xl font-black text-gov-blue-dark tracking-tighter">Portal da Empresa</h2>
           </div>
 
           <div className="mb-8 text-center">
@@ -124,7 +124,7 @@ export function CompanyLoginPage() {
                     <input
                       type="text"
                       required
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all"
                       placeholder="Nome da empresa"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -140,7 +140,7 @@ export function CompanyLoginPage() {
                       <input
                         type="text"
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all"
                         placeholder="00.000.000/0001-00"
                         value={cnpj}
                         onChange={(e) => setCnpj(e.target.value)}
@@ -154,7 +154,7 @@ export function CompanyLoginPage() {
                       <input
                         type="text"
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all"
                         placeholder="Nome Fantasia"
                         value={nomeFantasia}
                         onChange={(e) => setNomeFantasia(e.target.value)}
@@ -172,7 +172,7 @@ export function CompanyLoginPage() {
                 <input
                   type="email"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all"
                   placeholder="empresa@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -187,7 +187,7 @@ export function CompanyLoginPage() {
                 <input
                   type="password"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -204,7 +204,7 @@ export function CompanyLoginPage() {
 
             <button
               type="submit"
-              className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98] mt-6"
+              className="w-full py-4 bg-gov-blue text-white rounded-xl font-bold hover:bg-gov-blue-dark transition-all shadow-lg shadow-gov-blue/20 active:scale-[0.98] mt-6"
             >
               {authMode === 'login' ? 'Entrar no Painel' : 'Criar Conta de Empresa'}
             </button>
@@ -218,7 +218,7 @@ export function CompanyLoginPage() {
                 <button
                   type="button"
                   onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                  className="ml-2 text-indigo-600 font-bold hover:underline"
+                  className="ml-2 text-gov-blue font-bold hover:underline"
                 >
                   {authMode === 'login' ? 'Cadastre aqui' : 'Faça Login'}
                 </button>

@@ -24,10 +24,9 @@ type ChatbotProps = {
   userProfile: Record<string, unknown> | null;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  showLanding: boolean;
 };
 
-export function Chatbot({ user, userProfile, isOpen, setIsOpen, showLanding }: ChatbotProps) {
+export function Chatbot({ user, userProfile, isOpen, setIsOpen }: ChatbotProps) {
   const navigate = useNavigate();
   const openAuth = (mode: 'login' | 'register') => {
     navigate(PATHS.login, { state: { mode } });
@@ -228,7 +227,7 @@ export function Chatbot({ user, userProfile, isOpen, setIsOpen, showLanding }: C
       : null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[120]" data-testid="temvaga-chat-root">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -236,6 +235,9 @@ export function Chatbot({ user, userProfile, isOpen, setIsOpen, showLanding }: C
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="bg-white w-[calc(100vw-2rem)] sm:w-96 h-[min(520px,70vh)] rounded-2xl shadow-2xl border border-slate-200 flex flex-col mb-4 overflow-x-hidden min-h-0 right-0"
+            data-testid="temvaga-chat-panel"
+            role="dialog"
+            aria-label="Assistente TemVaga"
           >
             <div className="bg-gov-blue p-4 text-white">
               <div className="flex justify-between items-center">
@@ -404,19 +406,18 @@ export function Chatbot({ user, userProfile, isOpen, setIsOpen, showLanding }: C
         )}
       </AnimatePresence>
 
-      {!showLanding && (
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-14 h-14 bg-gov-blue text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group relative"
-          aria-label="Abrir assistente TemVaga"
-        >
-          <MessageSquare className="w-6 h-6" />
-          <span className="absolute -top-12 right-0 bg-white text-gov-blue text-[10px] font-black px-3 py-1.5 rounded-full shadow-md border border-gov-blue/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            TemVaga? Fale comigo!
-          </span>
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-14 h-14 bg-gov-blue text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group relative"
+        aria-label={isOpen ? 'Fechar assistente TemVaga' : 'Abrir assistente TemVaga'}
+        data-testid="temvaga-chat-toggle"
+      >
+        {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+        <span className="absolute -top-12 right-0 bg-white text-gov-blue text-[10px] font-black px-3 py-1.5 rounded-full shadow-md border border-gov-blue/20 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          TemVaga? Fale comigo!
+        </span>
+      </button>
     </div>
   );
 }

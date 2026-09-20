@@ -22,20 +22,26 @@ import {
 import { auth, db } from '../initFirebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreErrors';
 import type { Vaga, Curso } from '../types';
-import { cursos as mockCursos, vagas as mockVagas } from '../mockData';
-import {
-  isDemoModeActive,
-  persistDemoRole,
-  readDemoRoleFromLocation,
-  type DemoRole,
-} from '../lib/demoMode';
+
+type AppRecord = Record<string, unknown> & { id: string; vaga_id?: string | number };
+type CourseRecord = Record<string, unknown> & { id: string; curso_id?: string | number };
+
+export type DemoSessionPayload = {
+  user: FirebaseUser;
+  profile: Record<string, unknown>;
+  vagas: Vaga[];
+  cursos: Curso[];
+  applications: AppRecord[];
+  acquiredCourses: CourseRecord[];
+  descricao: string;
+};
 
 type AppStateValue = {
   user: FirebaseUser | null;
   loading: boolean;
   userProfile: Record<string, unknown> | null;
-  myApplications: Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>;
-  myAcquiredCourses: Array<Record<string, unknown> & { id: string; curso_id?: string | number }>;
+  myApplications: AppRecord[];
+  myAcquiredCourses: CourseRecord[];
   vagas: Vaga[];
   cursos: Curso[];
   searchQuery: string;
@@ -52,106 +58,54 @@ type AppStateValue = {
   handleApply: (vagaId: string | number) => Promise<void>;
   handleAcquireCourse: (cursoId: string | number) => Promise<void>;
   demoMode: boolean;
+  applyDemoSession: (payload: DemoSessionPayload) => void;
+  clearDemoSession: () => void;
 };
 
 const AppStateContext = createContext<AppStateValue | null>(null);
 
-function buildDemoUser(role: DemoRole): FirebaseUser {
-  return {
-    uid: `demo-${role}`,
-    email: `demo-${role}@temvaga.local`,
-    emailVerified: true,
-    isAnonymous: false,
-    metadata: {} as FirebaseUser['metadata'],
-    providerData: [],
-    refreshToken: '',
-    tenantId: null,
-    displayName: role === 'empresa' ? 'Empresa Demo' : 'Candidato Demo',
-    photoURL: null,
-    phoneNumber: null,
-    providerId: 'demo',
-    delete: async () => undefined,
-    getIdToken: async () => 'demo-token',
-    getIdTokenResult: async () => ({}) as never,
-    reload: async () => undefined,
-    toJSON: () => ({}),
-  } as FirebaseUser;
-}
-
-function buildDemoProfile(role: DemoRole): Record<string, unknown> {
-  if (role === 'admin') {
-    return { role: 'admin', nome_completo: 'Admin Demo', email: 'demo-admin@temvaga.local' };
-  }
-  if (role === 'empresa') {
-    return {
-      role: 'empresa',
-      nome_completo: 'Empresa Demo Ltda',
-      email: 'demo-empresa@temvaga.local',
-      nome_fantasia: 'Demo Serviços',
-    };
-  }
-  return {
-    role: 'candidato',
-    nome_completo: 'Maria Demo',
-    email: 'demo-candidato@temvaga.local',
-    cpf: '00000000000',
-    descricao_profissional:
-      'Experiência em limpeza profissional, higiene de escritórios e uso de EPI. Busco vaga de auxiliar de limpeza ou serviços gerais.',
-    experiencia_profissional: '2 anos como auxiliar de limpeza em condomínios',
-    ocupacaoDesejada: 'Auxiliar de Limpeza',
-    escolaridade: 'Ensino médio completo',
-  };
-}
-
-const approvedMockCursos: Curso[] = mockCursos.map((c) => ({ ...c, status: 'approved' as const }));
-const approvedMockVagas: Vaga[] = mockVagas.map((v) => ({
-  ...v,
-  status: 'approved' as const,
-  cursos_recomendados: undefined,
-}));
-
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [demoMode] = useState(() => isDemoModeActive());
-  const [demoRole] = useState<DemoRole | null>(() => readDemoRoleFromLocation());
-
-  const [user, setUser] = useState<FirebaseUser | null>(() =>
-    demoMode && demoRole ? buildDemoUser(demoRole) : null,
-  );
-  const [loading, setLoading] = useState(!demoMode);
-  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(() =>
-    demoMode && demoRole ? buildDemoProfile(demoRole) : null,
-  );
-  const [myApplications, setMyApplications] = useState<
-    Array<Record<string, unknown> & { id: string; vaga_id?: string | number }>
-  >(() => (demoMode ? [{ id: 'demo-app-1', vaga_id: 1, status: 'applied' }] : []));
-  const [myAcquiredCourses, setMyAcquiredCourses] = useState<
-    Array<Record<string, unknown> & { id: string; curso_id?: string | number }>
-  >(() =>
-    demoMode
-      ? [
-          { id: 'demo-ac-1', curso_id: 1, progress: 60 },
-          { id: 'demo-ac-6', curso_id: 6, progress: 100 },
-        ]
-      : [],
-  );
-  const [vagas, setVagas] = useState<Vaga[]>(() => (demoMode ? approvedMockVagas : []));
-  const [cursos, setCursos] = useState<Curso[]>(() => (demoMode ? approvedMockCursos : []));
+  const [demoMode, setDemoMode] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(null);
+  const [myApplications, setMyApplications] = useState<AppRecord[]>([]);
+  const [myAcquiredCourses, setMyAcquiredCourses] = useState<CourseRecord[]>([]);
+  const [vagas, setVagas] = useState<Vaga[]>([]);
+  const [cursos, setCursos] = useState<Curso[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const [selectedCurso, setSelectedCurso] = useState<Curso | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [descricaoProfissional, setDescricaoProfissional] = useState(
-    () => (demoMode && demoRole ? String(buildDemoProfile(demoRole).descricao_profissional || '') : ''),
-  );
+  const [descricaoProfissional, setDescricaoProfissional] = useState('');
+
+  const applyDemoSession = useCallback((payload: DemoSessionPayload) => {
+    setDemoMode(true);
+    setUser(payload.user);
+    setUserProfile(payload.profile);
+    setVagas(payload.vagas);
+    setCursos(payload.cursos);
+    setMyApplications(payload.applications);
+    setMyAcquiredCourses(payload.acquiredCourses);
+    setDescricaoProfissional(payload.descricao);
+    setLoading(false);
+  }, []);
+
+  const clearDemoSession = useCallback(() => {
+    setDemoMode(false);
+    setUser(null);
+    setUserProfile(null);
+    setVagas([]);
+    setCursos([]);
+    setMyApplications([]);
+    setMyAcquiredCourses([]);
+    setDescricaoProfissional('');
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (demoMode && demoRole) {
-      persistDemoRole(demoRole);
-      setLoading(false);
-      return;
-    }
-
+    if (demoMode) return;
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (!u) {
@@ -160,7 +114,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     });
     return unsubscribe;
-  }, [demoMode, demoRole]);
+  }, [demoMode]);
 
   useEffect(() => {
     if (demoMode) return;
@@ -353,6 +307,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       handleApply,
       handleAcquireCourse,
       demoMode,
+      applyDemoSession,
+      clearDemoSession,
     }),
     [
       user,
@@ -371,6 +327,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       handleApply,
       handleAcquireCourse,
       demoMode,
+      applyDemoSession,
+      clearDemoSession,
     ],
   );
 
