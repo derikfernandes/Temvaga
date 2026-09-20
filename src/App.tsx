@@ -24,6 +24,16 @@ import { CompanyDashboardPage } from './pages/company/CompanyDashboardPage';
 import { CompanyVagasPage } from './pages/company/CompanyVagasPage';
 import { CompanyApplicantsPage } from './pages/company/CompanyApplicantsPage';
 import { CompanyProfilePage } from './pages/company/CompanyProfilePage';
+function DemoBanner() {
+  const { demoMode } = useAppState();
+  if (!demoMode) return null;
+  return (
+    <div className="bg-gov-yellow text-gov-blue-dark text-center text-[11px] font-bold py-1 px-3 uppercase tracking-wider">
+      Modo demo local (Firebase não configurado) — dados de seed para QA
+    </div>
+  );
+}
+
 function GlobalLoading() {
   const { loading } = useAppState();
   if (!loading) return null;
@@ -50,6 +60,7 @@ function AppRoutes() {
 
   return (
     <>
+      <DemoBanner />
       <Routes>
         <Route path={PATHS.root} element={<LandingRoute onStartChat={() => setIsChatOpen(true)} />} />
         <Route path={PATHS.login} element={<LoginPage />} />
